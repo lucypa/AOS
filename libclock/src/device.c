@@ -9,7 +9,6 @@
  *
  * @TAG(DATA61_GPL)
  */
-#include <stdlib.h>
 #include <stdint.h>
 #include <assert.h>
 #include <clock/clock.h>

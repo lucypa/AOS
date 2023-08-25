@@ -29,8 +29,9 @@
 #include <stdint.h>
 #include <sel4/sel4.h>
 #include <aos/strerror.h>
-#include <stdlib.h>
 #include <cspace/bitfield.h>
+
+#define PACKED       __attribute__((__packed__))
 
 /* the cspace needs to keep a set of free slots to ensure it can allocate further structures
  * when we run out of 2nd level cnodes. 3 for potential mapping structures, 1 for a bookkeeping frame */

@@ -37,8 +37,17 @@ int sos_sys_read(int file, char *buf, size_t nbyte)
 
 int sos_sys_write(int file, const char *buf, size_t nbyte)
 {
-    assert(!"You need to implement this");
-    return -1;
+    //assert(!"You need to implement this");
+    //return -1;
+
+    seL4_MessageInfo_t msg = seL4_MessageInfo_new(0, 0, 0, 2);
+
+    for (int i = 0; i < nbyte; i++) {
+        seL4_SetMR(0, 2);
+        seL4_SetMR(1, buf[i]);
+        seL4_Call(SOS_IPC_EP_CAP, msg);
+    }
+    return nbyte;
 }
 
 int sos_getdirent(int pos, char *name, size_t nbyte)

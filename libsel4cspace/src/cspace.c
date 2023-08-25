@@ -13,10 +13,8 @@
 #include <utils/util.h>
 #include <cspace/cspace.h>
 #include <aos/sel4_zf_logif.h>
+#include <aos/malloc.h>
 #include <sel4/sel4.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
 #include <assert.h>
 
 static inline void *alloc_4k_untyped(cspace_alloc_t *alloc, seL4_CPtr *dest)
@@ -164,7 +162,7 @@ static int cspace_create(cspace_t *cspace, cspace_t *target, bool two_level, csp
     target->alloc = cspace_alloc;
     target->top_lvl_size_bits = CNODE_SIZE_BITS;
     /* the top level bf is small, so malloc this memory */
-    target->top_bf = calloc(1, sizeof(seL4_Word) * BITFIELD_SIZE(target->top_lvl_size_bits));
+    target->top_bf = sos_calloc(1, sizeof(seL4_Word) * BITFIELD_SIZE(target->top_lvl_size_bits));
     if (target->top_bf == NULL) {
         ZF_LOGE("Malloc out of memory");
         return CSPACE_ERROR;
@@ -172,7 +170,7 @@ static int cspace_create(cspace_t *cspace, cspace_t *target, bool two_level, csp
 
     /* allocate bottom levels (if required) */
     if (target->two_level) {
-        target->bot_lvl_nodes = calloc(BOT_LVL_NODES(CNODE_SIZE_BITS), sizeof(bot_lvl_node_t));
+        target->bot_lvl_nodes = sos_calloc(BOT_LVL_NODES(CNODE_SIZE_BITS), sizeof(bot_lvl_node_t));
         if (target->bot_lvl_nodes == NULL) {
             cspace_destroy(target);
             ZF_LOGE("Malloc out of memory");
@@ -318,11 +316,11 @@ void cspace_destroy(cspace_t *cspace)
     }
 
     if (cspace->bot_lvl_nodes) {
-        free(cspace->bot_lvl_nodes);
+        sos_free(cspace->bot_lvl_nodes);
     }
 
     if (cspace->top_bf) {
-        free(cspace->top_bf);
+        sos_free(cspace->top_bf);
     }
 }
 

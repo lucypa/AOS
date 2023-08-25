@@ -9,9 +9,8 @@
  *
  * @TAG(DATA61_GPL)
  */
-#include <assert.h>
-#include <stddef.h>
-#include <string.h>
+
+#include <aos/printf.h>
 #include <utils/util.h>
 #include <networkconsole/networkconsole.h>
 #include <sos/gen_config.h>
@@ -71,7 +70,7 @@ struct network_console *network_console_init(void)
 
     struct pico_ip4 *src = pico_ipv4_source_find(&gateway);
     unsigned char *octects = (unsigned char *) &src->addr;
-    printf("libnetworkconsole using udp port %d\n", AOS_BASEPORT + octects[3]);
+    sos_printf("libnetworkconsole using udp port %d\n", AOS_BASEPORT + octects[3]);
 
     /* Configure peer/port for sendto */
     pico_string_to_ipv4(CONFIG_SOS_GATEWAY, &network_console.peer);
@@ -80,6 +79,7 @@ struct network_console *network_console_init(void)
 
     int err = pico_socket_bind(network_console.pico_socket, &network_console.inaddr_any, &port_be);
     if (err) {
+        ZF_LOGE("Network console failed to bind to UDP server");
         return NULL;
     }
 
@@ -103,6 +103,7 @@ int network_console_send(struct network_console *network_console, char *data, in
             return -1;
         }
         if (sent == 0) {
+            ZF_LOGE("Pico sent 0 bytes");
             return total_sent;
         }
         total_sent += sent;

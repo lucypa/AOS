@@ -12,7 +12,7 @@
 #pragma once
 
 #include <sel4runtime.h>
-#include <stdlib.h>
+#include <aos/malloc.h>
 #include "utils.h"
 
 #define CHANNEL_TYPE(name)                      name##_channel_t
@@ -41,7 +41,7 @@
 
 #define CHANNEL_DEFINE_SOURCE(name, type, size) \
     CHANNEL_TYPE(name) *name##_channel_create(seL4_CPtr read_available) { \
-        CHANNEL_TYPE(name) *channel = malloc(sizeof(*channel)); \
+        CHANNEL_TYPE(name) *channel = sos_malloc(sizeof(*channel)); \
         channel->next_msg = 0; \
         channel->next_empty = 0; \
         ut_t *ut = alloc_retype(&channel->read_ntfn, seL4_NotificationObject, seL4_NotificationBits); \

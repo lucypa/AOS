@@ -15,4 +15,4 @@ project(libnetworkconsole C)
 
 add_library(networkconsole EXCLUDE_FROM_ALL src/networkconsole.c)
 target_include_directories(networkconsole PUBLIC include)
-target_link_libraries(networkconsole muslc sel4 picotcp utils sos_Config)
+target_link_libraries(networkconsole aos sel4 picotcp utils sos_Config)

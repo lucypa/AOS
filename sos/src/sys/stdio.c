@@ -32,11 +32,12 @@
 #include <sys/syscall.h>
 
 #undef PACKED
-#include <pico_bsd_sockets.h>
+//#include <pico_bsd_sockets.h>
 
 #include "../drivers/uart.h"
 #include "../syscalls.h"
 
+typedef unsigned long nfds_t;
 #define STDOUT_FD 1
 #define STDERR_FD 2
 #define PICO_FD_START 3
@@ -60,11 +61,11 @@ static size_t output(void *data, size_t count)
     return i;
 }
 
-void update_vputchar(vputchar_t v)
+/*void update_vputchar(vputchar_t v)
 {
     vputchar = v;
 }
-
+*/
 long sys_writev(va_list ap)
 {
     int fildes = va_arg(ap, int);
@@ -100,7 +101,7 @@ long sys_writev(va_list ap)
         }
     } else if (fildes >= PICO_FD_START) {
         for (int i = 0; i < iovcnt; i++) {
-            int res = pico_write(fildes - PICO_FD_START, iov[i].iov_base, iov[i].iov_len);
+            int res = 0;//pico_write(fildes - PICO_FD_START, iov[i].iov_base, iov[i].iov_len);
             if (res == -1) {
                 return -errno;
             } else {
@@ -157,14 +158,15 @@ long sys_socket(va_list ap)
     int type = va_arg(ap, int);
     int protocol = va_arg(ap, int);
 
-    /* Call pico tcp */
+    /* Call pico tcp 
     int new_sd = pico_newsocket(domain, type, protocol);
     if (new_sd < 0) {
         ZF_LOGE("failed to create new pico socket %d", errno);
         return -errno;
     }
-    new_sd += PICO_FD_START;
-    return new_sd;
+    new_sd += PICO_FD_START; 
+    return new_sd;*/
+    return 0;
 }
 
 long sys_bind(va_list ap)
@@ -173,11 +175,12 @@ long sys_bind(va_list ap)
     struct sockaddr *local_addr = va_arg(ap, struct sockaddr *);
     socklen_t socklen = va_arg(ap, socklen_t);
 
-    if (sd >= PICO_FD_START) {
+    /*if (sd >= PICO_FD_START) {
         int ret = pico_bind(sd - PICO_FD_START, local_addr, socklen);
         return ret == 0 ? 0 : -errno;
     }
-    return -EINVAL;
+    return -EINVAL;*/
+    return 0;
 }
 
 long sys_listen(va_list ap)
@@ -185,12 +188,13 @@ long sys_listen(va_list ap)
     int sd = va_arg(ap, int);
     int backlog = va_arg(ap, int);
 
-    if (sd >= PICO_FD_START) {
+    /*if (sd >= PICO_FD_START) {
         int ret = pico_listen(sd - PICO_FD_START, backlog);
         return ret == 0 ? 0 : -errno;
     }
 
-    return -EINVAL;
+    return -EINVAL;*/
+    return 0;
 }
 
 long sys_connect(va_list ap)
@@ -199,11 +203,12 @@ long sys_connect(va_list ap)
     const struct sockaddr *_saddr = va_arg(ap, const struct sockaddr *);
     socklen_t socklen = va_arg(ap, socklen_t);
 
-    if (sd >= PICO_FD_START) {
+    /*if (sd >= PICO_FD_START) {
         int err = pico_connect(sd - PICO_FD_START, _saddr, socklen);
         return err == 0 ? err : -errno;
     }
-    return -EINVAL;
+    return -EINVAL;*/
+    return 0;
 }
 
 long sys_accept(va_list ap)
@@ -212,11 +217,12 @@ long sys_accept(va_list ap)
     struct sockaddr *_orig = va_arg(ap, struct sockaddr *);
     socklen_t *socklen = va_arg(ap, socklen_t *);
 
-    if (sd >= PICO_FD_START) {
+    /*if (sd >= PICO_FD_START) {
         int ret = pico_accept(sd - PICO_FD_START, _orig, socklen);
         return ret == 0 ? 0 : -errno;
     }
-    return -EINVAL;
+    return -EINVAL;*/
+    return 0;
 }
 
 long sys_sendto(va_list ap)
@@ -228,19 +234,20 @@ long sys_sendto(va_list ap)
     struct sockaddr *_dst = va_arg(ap, struct sockaddr *);
     socklen_t socklen = va_arg(ap, socklen_t);
 
-    if (sd >= PICO_FD_START) {
+    return 0;
+    /*if (sd >= PICO_FD_START) {
         int ret = pico_sendto(sd - PICO_FD_START, buf, len, flags, _dst, socklen);
         if (ret == 0) {
             /* PicoTCP will happily report zero bytes sent if its buffers are full,
              * but the canonical way to deal with this in libraries that use sendto()
              * (like libnfs) is to keep trying to send the data in a loop until it
              * succeeds. Since we don't want sendto() to have to block (and tick the IP
-             * stack), return an error message indicating the TX buffers are full. */
+             * stack), return an error message indicating the TX buffers are full. 
             return -EWOULDBLOCK;
         }
         return ret < 0 ? -errno : ret;
     }
-    return -EINVAL;
+    return -EINVAL;*/
 }
 
 long sys_recvfrom(va_list ap)
@@ -252,11 +259,12 @@ long sys_recvfrom(va_list ap)
     struct sockaddr *_addr = va_arg(ap, struct sockaddr *);
     socklen_t *socklen = va_arg(ap, socklen_t *);
 
-    if (sd >= PICO_FD_START) {
+    /*if (sd >= PICO_FD_START) {
         int ret = pico_recvfrom(sd - PICO_FD_START, buf, len, flags, _addr, socklen);
         return ret >= 0 ? ret : -errno;
     }
-    return -EINVAL;
+    return -EINVAL;*/
+    return 0;
 }
 
 long sys_readv(va_list ap)
@@ -265,7 +273,7 @@ long sys_readv(va_list ap)
     const struct iovec *iov = va_arg(ap, const struct iovec *);
     int iovcnt = va_arg(ap, int);
 
-    if (fd >= PICO_FD_START) {
+    /*if (fd >= PICO_FD_START) {
         int total = 0;
         for (int i = 0; i < iovcnt; i++) {
             int ret = pico_read(fd - PICO_FD_START, iov[i].iov_base, iov[i].iov_len);
@@ -278,17 +286,19 @@ long sys_readv(va_list ap)
         return total == 0 ? -errno : total;
     }
 
-    return -EINVAL;
+    return -EINVAL;*/
+    return 0;
 }
 
 long sys_close(va_list ap)
 {
     int sockfd = va_arg(ap, int);
-    if (sockfd >= PICO_FD_START) {
+    /*if (sockfd >= PICO_FD_START) {
         int ret = pico_close(sockfd - PICO_FD_START);
         return ret == 0 ? 0 : -errno;
     }
-    return -EINVAL;
+    return -EINVAL;*/
+    return 0;
 }
 
 long sys_getsockname(va_list ap)
@@ -297,11 +307,12 @@ long sys_getsockname(va_list ap)
     struct sockaddr *local_addr = va_arg(ap, struct sockaddr *);
     socklen_t *socklen = va_arg(ap, socklen_t *);
 
-    if (sd >= PICO_FD_START) {
+    /*if (sd >= PICO_FD_START) {
         int ret = pico_getsockname(sd - PICO_FD_START, local_addr, socklen);
         return ret == 0 ? 0 : -errno;
     }
-    return -EINVAL;
+    return -EINVAL;*/
+    return 0;
 }
 
 long sys_getpeername(va_list ap)
@@ -310,11 +321,12 @@ long sys_getpeername(va_list ap)
     struct sockaddr *remote_addr = va_arg(ap, struct sockaddr *);
     socklen_t *socklen = va_arg(ap, socklen_t *);
 
-    if (sd >= PICO_FD_START) {
+    /*if (sd >= PICO_FD_START) {
         int ret = pico_getpeername(sd - PICO_FD_START, remote_addr, socklen);
         return ret == 0 ? 0 : -errno;
     }
-    return -EINVAL;
+    return -EINVAL;*/
+    return 0;
 }
 
 long sys_fcntl(va_list ap)
@@ -322,11 +334,12 @@ long sys_fcntl(va_list ap)
     int sockfd = va_arg(ap, int);
     int cmd = va_arg(ap, int);
     int arg = va_arg(ap, int);
-    if (sockfd >= PICO_FD_START) {
+    /*if (sockfd >= PICO_FD_START) {
         int ret = pico_fcntl(sockfd - PICO_FD_START, cmd, arg);
         return ret == 0 ? 0 : -errno;
     }
-    return -EINVAL;
+    return -EINVAL;*/
+    return 0;
 }
 
 long sys_setsockopt(va_list ap)
@@ -337,11 +350,12 @@ long sys_setsockopt(va_list ap)
     const void *optval = va_arg(ap, void *);
     socklen_t optlen = va_arg(ap, socklen_t);
 
-    if (sockfd >= PICO_FD_START) {
+    /*if (sockfd >= PICO_FD_START) {
         int ret = pico_setsockopt(sockfd - PICO_FD_START, level, optname, optval, optlen);
         return ret == 0 ? 0 : -errno;
     }
-    return -EINVAL;
+    return -EINVAL;*/
+    return 0;
 }
 
 long sys_getsockopt(va_list ap)
@@ -352,11 +366,12 @@ long sys_getsockopt(va_list ap)
     void *optval = va_arg(ap, void *);
     socklen_t *optlen = va_arg(ap, socklen_t *);
 
-    if (sockfd >= PICO_FD_START) {
+    /*if (sockfd >= PICO_FD_START) {
         int ret = pico_getsockopt(sockfd - PICO_FD_START, level, optname, optval, optlen);
         return ret == 0 ? 0 : -errno;
     }
-    return -EINVAL;
+    return -EINVAL;*/
+    return 0;
 }
 
 long sys_ppoll(va_list ap)
@@ -365,7 +380,7 @@ long sys_ppoll(va_list ap)
     nfds_t npfd = va_arg(ap, nfds_t);
     struct timespec *tmo_p = va_arg(ap, struct timespec *);
 
-    if (npfd > RLIMIT_NOFILE) {
+    /*if (npfd > RLIMIT_NOFILE) {
         return -EINVAL;
     }
 
@@ -375,14 +390,15 @@ long sys_ppoll(va_list ap)
         } else {
             return -EINVAL;
         }
-    }
+    }*/
 
     /* ignore timeouts, they won't work */
-    int ret = pico_ppoll(pfd, npfd, tmo_p, NULL);
+    //int ret = pico_ppoll(pfd, npfd, tmo_p, NULL);
 
-    for (nfds_t i = 0; i < npfd; i++) {
+    /*for (nfds_t i = 0; i < npfd; i++) {
         pfd[i].fd += PICO_FD_START;
     }
 
-    return ret >= 0 ? ret : -errno;
+    return ret >= 0 ? ret : -errno;*/
+    return 0;
 }

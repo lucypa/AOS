@@ -13,7 +13,8 @@
  * Based loosely off of Linux's PHY Lib
  */
 
-#include <stdlib.h>
+#include <aos/malloc.h>
+#include <aos/printf.h>
 #include "config.h"
 #include "common.h"
 #include "net.h"
@@ -241,25 +242,25 @@ int genphy_update_link(struct phy_device *phydev)
 	    !(mii_reg & BMSR_ANEGCOMPLETE)) {
 		int i = 0;
 
-		printf("%s Waiting for PHY auto negotiation to complete", phydev->dev->name);
-		fflush(stdout);
+		sos_printf("%s Waiting for PHY auto negotiation to complete", phydev->dev->name);
+		//fflush(stdout);
 		while (!(mii_reg & BMSR_ANEGCOMPLETE)) {
 			/*
 			 * Timeout reached ?
 			 */
 			if (i > PHY_ANEG_TIMEOUT) {
-				printf(" TIMEOUT !\n");
+				sos_printf(" TIMEOUT !\n");
 				phydev->link = 0;
 				return -ETIMEDOUT;
 			}
 
 			if ((i++ % 500) == 0)
-				printf(".");
+				sos_printf(".");
 
 			uboot_udelay(1000);	/* 1 ms */
 			mii_reg = phy_read(phydev, MDIO_DEVAD_NONE, MII_BMSR);
 		}
-		printf(" done\n");
+		sos_printf(" done\n");
 		phydev->link = 1;
 	} else {
 		/* Read the link a second time to clear the latched state */
@@ -606,7 +607,7 @@ static struct phy_device *phy_device_create(struct mii_dev *bus, int addr,
 
 	/* We allocate the device, and initialize the
 	 * default values */
-	dev = malloc(sizeof(*dev));
+	dev = sos_malloc(sizeof(*dev));
 	if (!dev) {
 		printf("Failed to allocate PHY device for %s:%d\n",
 			bus->name, addr);

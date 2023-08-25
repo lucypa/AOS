@@ -13,7 +13,7 @@ cmake_minimum_required(VERSION 3.7.2)
 
 project(libaos C)
 
-add_library(aos EXCLUDE_FROM_ALL src/debug.c src/strerror.c src/vsyscall.c)
+add_library(aos EXCLUDE_FROM_ALL src/debug.c src/strerror.c src/vsyscall.c src/printf.c src/malloc.c)
 target_include_directories(aos PUBLIC include)
 target_link_libraries(aos sel4_autoconf muslc sel4 utils)
 

@@ -14,6 +14,7 @@
 #include <cspace/cspace.h>
 #include <utils/util.h>
 #include <sel4/sel4.h>
+#include <aos/malloc.h>
 #include "dma.h"
 #include "bootstrap.h"
 #include "frame_table.h"
@@ -79,7 +80,7 @@ static void test_cspace(cspace_t *cspace)
         nslots = MIN(CNODE_SLOTS(cspace->top_lvl_size_bits) * CNODE_SLOTS(CNODE_SIZE_BITS) - 4,
                      CNODE_SLOTS(CNODE_SIZE_BITS) * BOT_LVL_PER_NODE + 1);
     }
-    seL4_CPtr *slots = malloc(sizeof(seL4_CPtr) * nslots);
+    seL4_CPtr *slots = sos_malloc(sizeof(seL4_CPtr) * nslots);
     assert(slots != NULL);
 
     ZF_LOGV("Test allocating and freeing %d slots", nslots);
@@ -98,7 +99,7 @@ static void test_cspace(cspace_t *cspace)
         cspace_free_slot(cspace, slots[i]);
     }
 
-    free(slots);
+    sos_free(slots);
 }
 
 static void test_dma(void)

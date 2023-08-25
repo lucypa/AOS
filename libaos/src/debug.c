@@ -11,14 +11,14 @@
  */
 #include <autoconf.h>
 #include <aos/debug.h>
+#include <aos/printf.h>
 #include <sel4/sel4.h>
-#include <stdio.h>
 
 void debug_cap_identify(seL4_CPtr cap)
 {
 #ifdef CONFIG_DEBUG_BUILD
     int type = seL4_DebugCapIdentify(cap);
-    printf("Cap type number is %d\n", type);
+    sos_printf("Cap type number is %d\n", type);
 #endif /* CONFIG_DEBUG_BUILD */
 }
 
@@ -61,7 +61,7 @@ void debug_print_fault(seL4_MessageInfo_t tag, const char *thread_name)
     switch (seL4_Fault_get_seL4_FaultType(fault)) {
     case seL4_Fault_VMFault:
         assert(seL4_MessageInfo_get_length(tag) == seL4_VMFault_Length);
-        printf("%sPagefault from [%s]: %s %s at PC: %p vaddr: %p, FSR %p%s\n",
+        sos_printf("%sPagefault from [%s]: %s %s at PC: %p vaddr: %p, FSR %p%s\n",
                COLOR_ERROR,
                thread_name,
                debug_is_read_fault() ? "read" : "write",
@@ -74,7 +74,7 @@ void debug_print_fault(seL4_MessageInfo_t tag, const char *thread_name)
 
     case seL4_Fault_UnknownSyscall:
         assert(seL4_MessageInfo_get_length(tag) == seL4_UnknownSyscall_Length);
-        printf("%sBad syscall from [%s]: scno %"PRIuPTR" at PC: %p%s\n",
+        sos_printf("%sBad syscall from [%s]: scno %"PRIuPTR" at PC: %p%s\n",
                COLOR_ERROR,
                thread_name,
                seL4_Fault_UnknownSyscall_get_Syscall(fault),
@@ -86,7 +86,7 @@ void debug_print_fault(seL4_MessageInfo_t tag, const char *thread_name)
 
     case seL4_Fault_UserException:
         assert(seL4_MessageInfo_get_length(tag) == seL4_UserException_Length);
-        printf("%sInvalid instruction from [%s] at PC: %p%s\n",
+        sos_printf("%sInvalid instruction from [%s] at PC: %p%s\n",
                COLOR_ERROR,
                thread_name,
                (void *)seL4_Fault_UserException_get_FaultIP(fault),
@@ -94,7 +94,7 @@ void debug_print_fault(seL4_MessageInfo_t tag, const char *thread_name)
         break;
 
     case seL4_Fault_CapFault:
-        printf("%sCap fault from [%s] in phase %s\nPC = %p\nCPtr = %p%s\n",
+        sos_printf("%sCap fault from [%s] in phase %s\nPC = %p\nCPtr = %p%s\n",
                COLOR_ERROR, thread_name,
                seL4_Fault_CapFault_get_InRecvPhase(fault) ? "receive" : "send",
                (void *) seL4_Fault_CapFault_get_IP(fault),
@@ -103,7 +103,7 @@ void debug_print_fault(seL4_MessageInfo_t tag, const char *thread_name)
         break;
     default:
         /* What? Why are we here? What just happened? */
-        printf("Unknown fault from [%s]: %"PRIuPTR" (length = %"PRIuPTR")\n", thread_name,
+        sos_printf("Unknown fault from [%s]: %"PRIuPTR" (length = %"PRIuPTR")\n", thread_name,
                 seL4_MessageInfo_get_label(tag), seL4_MessageInfo_get_length(tag));
         break;
     }
@@ -121,9 +121,9 @@ void debug_dump_registers(seL4_CPtr tcb)
         return;
     }
 
-    printf("Register dump:\n");
+    sos_printf("Register dump:\n");
     for (int i = 0; i < num_regs; i++) {
-        printf("%s\t:0x%lx\n", register_names[i], (long) ((seL4_Word * )&context)[i]);
+        sos_printf("%s\t:0x%lx\n", register_names[i], (long) ((seL4_Word * )&context)[i]);
     }
 }
 

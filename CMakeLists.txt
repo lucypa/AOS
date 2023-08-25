@@ -31,5 +31,4 @@ add_subdirectory(libsosapi)
 
 # enable our networking libs
 set(LibPicotcp ON CACHE BOOL "" FORCE)
-set(LibPicotcpBsd ON CACHE BOOL "" FORCE)
 set(LibNfs ON CACHE BOOL "" FORCE)

@@ -74,7 +74,6 @@ target_link_libraries(
     aos
     utils
     picotcp
-    picotcp_bsd
     nfs
     ethernet
     sos_Config

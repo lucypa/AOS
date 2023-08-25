@@ -16,7 +16,7 @@
 #include "net.h"
 #include <errno.h>
 #include "miiphy.h"
-#include <malloc.h>
+#include <aos/malloc.h>
 #include "../io.h"
 #include "designware.h"
 
@@ -281,7 +281,7 @@ static int dw_adjust_link(struct dw_eth_dev *priv, struct eth_mac_regs *mac_p,
 	u32 conf = readl(&mac_p->conf) | FRAMEBURSTENABLE | DISABLERXOWN;
 
 	if (!phydev->link) {
-		printf("%s: No link.\n", phydev->dev->name);
+		sos_printf("%s: No link.\n", phydev->dev->name);
 		return 0;
 	}
 
@@ -298,7 +298,7 @@ static int dw_adjust_link(struct dw_eth_dev *priv, struct eth_mac_regs *mac_p,
 
 	writel(conf, &mac_p->conf);
 
-	printf("Speed: %d, %s duplex%s\n", phydev->speed,
+	sos_printf("Speed: %d, %s duplex%s\n", phydev->speed,
 	       (phydev->duplex) ? "full" : "half",
 	       (phydev->port == PORT_FIBRE) ? ", fiber mode" : "");
 
@@ -605,10 +605,10 @@ int designware_initialize(ulong base_addr, u32 interface, struct eth_device *dev
 
 	/* This needs to exist for driver lifetime. Doesn't need to be DMA
 	 * any more as we allocate our DMA descriptors below */
-	priv = (struct dw_eth_dev *) malloc(sizeof(struct dw_eth_dev));
+	priv = (struct dw_eth_dev *)sos_malloc(sizeof(struct dw_eth_dev));
 
 	if (!priv) {
-		free(dev);
+		sos_free(dev);
 		return -ENOMEM;
 	}
 
@@ -837,7 +837,7 @@ static int designware_eth_remove(struct udevice *dev)
 {
 	struct dw_eth_dev *priv = dev_get_priv(dev);
 
-	free(priv->phydev);
+	sos_free(priv->phydev);
 	mdio_unregister(priv->bus);
 	mdio_free(priv->bus);
 

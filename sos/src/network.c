@@ -36,7 +36,7 @@
 #include <pico_dhcp_client.h>
 #include <pico_dhcp_server.h>
 #include <pico_ipfilter.h>
-#include "pico_bsd_sockets.h"
+//#include "pico_bsd_sockets.h"
 
 #include <ethernet/ethernet.h>
 
@@ -69,6 +69,7 @@ static struct nfs_context *nfs = NULL;
 static int dhcp_status = DHCP_STATUS_WAIT;
 static char nfs_dir_buf[PATH_MAX];
 static uint8_t ip_octet;
+uint32_t pico_stick;
 
 static void nfs_mount_cb(int status, struct nfs_context *nfs, void *data, void *private_data);
 
@@ -146,7 +147,9 @@ void nfslib_poll()
 
 static void network_tick_internal(void)
 {
-    pico_bsd_stack_tick();
+    pico_stick++;
+    pico_stack_tick();
+    pico_stack_tick();
     nfslib_poll();
 }
 
@@ -159,7 +162,8 @@ static int network_irq(
 {
     ethif_irq();
     seL4_IRQHandler_Ack(irq_handler);
-    pico_bsd_stack_tick();
+    pico_stack_tick();
+    pico_stack_tick();
     return 0;
 }
 
@@ -246,7 +250,7 @@ void network_init(cspace_t *cspace, void *timer_vaddr, seL4_CPtr irq_ntfn)
     error = ethif_init(eth_base_vaddr, mac_addr, &ethif_dma_ops, &raw_recv_callback);
     ZF_LOGF_IF(error != 0, "Failed to initialise ethernet interface");
 
-    pico_bsd_init();
+    // pico_bsd_init();
     pico_stack_init();
 
     memset(&pico_dev, 0, sizeof(struct pico_device));

@@ -49,7 +49,15 @@ static size_t sos_debug_print(const void *vData, size_t count)
 size_t sos_write(void *vData, size_t count)
 {
     //implement this to use your syscall
-    return sos_debug_print(vData, count);
+    seL4_MessageInfo_t msg = seL4_MessageInfo_new(0, 0, 0, 2);
+    char *src = (char *)vData;
+
+    for (int i = 0; i < count; i++) {
+        seL4_SetMR(0, 2);
+        seL4_SetMR(1, src[i]);
+        seL4_Call(SYSCALL_ENDPOINT_SLOT, msg);
+    }
+    return count;
 }
 
 size_t sos_read(void *vData, size_t count)

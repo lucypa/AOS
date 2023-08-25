@@ -15,6 +15,7 @@
 #include <utils/util.h>
 #include <sel4runtime.h>
 #include <aos/debug.h>
+#include <aos/malloc.h>
 #include <cspace/cspace.h>
 
 #include "ut.h"
@@ -95,7 +96,7 @@ sos_thread_t *thread_create(thread_main_f function, void *arg, seL4_Word badge, 
      * on top of the stack for sos */
     static seL4_Word curr_ipc_buf = SOS_IPC_BUFFER;
 
-    sos_thread_t *new_thread = malloc(sizeof(*new_thread));
+    sos_thread_t *new_thread = sos_malloc(sizeof(*new_thread));
     if (new_thread == NULL) {
         return NULL;
     }
@@ -111,7 +112,7 @@ sos_thread_t *thread_create(thread_main_f function, void *arg, seL4_Word badge, 
     }
 
     /* Set up TLS for the new thread */
-    void *tls_memory = malloc(sel4runtime_get_tls_size());
+    void *tls_memory = sos_malloc(sel4runtime_get_tls_size());
     if (tls_memory == NULL) {
         ZF_LOGE("Failed to alloc memory for tls");
         return NULL;

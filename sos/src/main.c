@@ -19,6 +19,7 @@
 #include <cspace/cspace.h>
 #include <aos/sel4_zf_logif.h>
 #include <aos/debug.h>
+#include <aos/printf.h>
 
 #include <clock/clock.h>
 #include <cpio/cpio.h>
@@ -83,6 +84,8 @@ cspace_t cspace;
 static seL4_CPtr sched_ctrl_start;
 static seL4_CPtr sched_ctrl_end;
 
+static struct network_console *nw;
+
 /* the one process we start */
 static struct {
     ut_t *tcb_ut;
@@ -127,7 +130,15 @@ seL4_MessageInfo_t handle_syscall(UNUSED seL4_Word badge, UNUSED int num_args, b
         seL4_SetMR(0, 0);
 
         break;
+    case 2:
+        seL4_Word wod = seL4_GetMR(1);
+        char *buff = (char *)&wod;
+        printf("%c", buff[0]);
+        network_console_send(nw, buff, 1);
 
+        reply_msg = seL4_MessageInfo_new(0, 0, 0, 1);
+        seL4_SetMR(0, 0);
+        break;
     default:
         reply_msg = seL4_MessageInfo_new(0, 0, 0, 0);
         ZF_LOGE("Unknown syscall %lu\n", syscall_number);
@@ -478,7 +489,7 @@ bool start_first_process(char *app_name, seL4_CPtr ep)
         .pc = elf_getEntryPoint(&elf_file),
         .sp = sp,
     };
-    printf("Starting ttytest at %p\n", (void *) context.pc);
+    sos_printf("Starting ttytest at %p\n", (void *) context.pc);
     err = seL4_TCB_WriteRegisters(tty_test_process.tcb, 1, 0, 2, &context);
     ZF_LOGE_IF(err, "Failed to write registers");
     return err == seL4_NoError;
@@ -572,21 +583,24 @@ NORETURN void *main_continued(UNUSED void *arg)
     void *timer_vaddr = sos_map_device(&cspace, PAGE_ALIGN_4K(TIMER_MAP_BASE), PAGE_SIZE_4K);
 
     /* Initialise the network hardware. */
-    printf("Network init\n");
+    sos_printf("Network init\n");
     network_init(&cspace, timer_vaddr, ntfn);
 
     /* Initialises the timer */
-    printf("Timer init\n");
+    sos_printf("Timer init\n");
     start_timer(timer_vaddr);
     /* You will need to register an IRQ handler for the timer here.
      * See "irq.h". */
 
+    sos_printf("Console init\n");
+    nw = network_console_init();
+
     /* Start the user application */
-    printf("Start first process\n");
+    sos_printf("Start first process\n");
     bool success = start_first_process(TTY_NAME, ipc_ep);
     ZF_LOGF_IF(!success, "Failed to start first process");
 
-    printf("\nSOS entering syscall loop\n");
+    sos_printf("\nSOS entering syscall loop\n");
     init_threads(ipc_ep, sched_ctrl_start, sched_ctrl_end);
     syscall_loop(ipc_ep);
 }
@@ -595,17 +609,17 @@ NORETURN void *main_continued(UNUSED void *arg)
  */
 int main(void)
 {
-    init_muslc();
+    // init_muslc();
 
     /* register the location of the unwind_tables -- this is required for
      * backtrace() to work */
-    __register_frame(&__eh_frame_start);
+    // __register_frame(&__eh_frame_start);
 
     seL4_BootInfo *boot_info = sel4runtime_bootinfo();
 
     debug_print_bootinfo(boot_info);
 
-    printf("\nSOS Starting...\n");
+    sos_printf("\nSOS Starting...\n");
 
     NAME_THREAD(seL4_CapInitThreadTCB, "SOS:root");
 
@@ -624,7 +638,7 @@ int main(void)
     update_vputchar(uart_putchar);
 
     /* test print */
-    printf("SOS Started!\n");
+    sos_printf("SOS Started!\n");
 
     /* allocate a bigger stack and switch to it -- we'll also have a guard page, which makes it much
      * easier to detect stack overruns */

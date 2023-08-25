@@ -36,7 +36,6 @@
 
 #include "list.h"
 #include "net.h"
-#include <stdlib.h>
 #include <string.h>
 #include "../unimplemented.h"
 
@@ -132,7 +131,7 @@ void miiphy_register(const char *name,
 
 	/* allocate memory */
 	new_dev = mdio_alloc();
-	ldev = malloc(sizeof(*ldev));
+	ldev = sos_malloc(sizeof(*ldev));
 
 	if (new_dev == NULL || ldev == NULL) {
 		printf("miiphy_register: cannot allocate memory for '%s'\n",
@@ -163,7 +162,7 @@ struct mii_dev *mdio_alloc(void)
 {
 	struct mii_dev *bus;
 
-	bus = malloc(sizeof(*bus));
+	bus = sos_malloc(sizeof(*bus));
 	if (!bus)
 		return bus;
 
